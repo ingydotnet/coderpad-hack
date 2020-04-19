@@ -1,0 +1,82 @@
+# shellcheck shell=bash disable=1090
+
+
+# Configuration info:
+CPH_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+
+NVM_DIR=~/nvm
+NVM_INSTALLER=https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh
+NODE_VERSION=v12.16.2
+NODE_BIN=$NVM_DIR/versions/node/$NODE_VERSION/bin
+
+
+# Print section header:
+o() {
+  echo
+  printf "=%.0s" {1..73}
+  echo
+  echo "$*"
+  printf "=%.0s" {1..73}
+  echo
+}
+
+
+# Install nvm:
+export NVM_DIR
+[[ -d $NVM_DIR ]] || (
+  o Installing NVM:
+
+  set -x
+  mkdir $NVM_DIR
+  curl -o- $NVM_INSTALLER | bash
+)
+
+
+# Turn on nvm:
+[[ -s $NVM_DIR/nvm.sh ]] &&
+  source $NVM_DIR/nvm.sh
+# [[ -s $NVM_DIR/bash_completion ]] &&
+#   source $NVM_DIR/bash_completion
+
+
+# Install NodeJS:
+[[ -d $NODE_BIN ]] || {
+  o Installing NodeJS
+
+  nvm install $NODE_VERSION
+}
+
+
+# Install CoffeeScript:
+command -v coffee >/dev/null || {
+  o Installing CoffeeScript
+
+  npm install -g coffeescript
+}
+
+
+# Rerun this in .bashrc:
+grep -q coderpad ~/.bashrc || {
+  o Modifying ~/.bashrc
+
+  cat <<... >> ~/.bashrc
+
+source $CPH_ROOT/setup no-show
+
+cp /usr/local/bin/startshell /tmp/ &&
+  grep -v 'echo.*BANNER' /tmp/startshell > /usr/local/bin/startshell
+
+...
+}
+
+
+# Show info:
+if [[ $# -eq 0 ]]; then
+  o Setup Complete!
+
+  echo
+  echo export PATH=$NODE_BIN:\$PATH
+  echo
+fi
+
+# vim: set ft=sh:
